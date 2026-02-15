@@ -18,12 +18,12 @@ const PHASE_CONFIG = [
     },
     { 
         id: 4, name: "宣发预热期", 
-        kpis: [ { type: 'cp', target: 200, label: 'CP热度' }, { type: 'play', target: 1000, label: '预告片播放量' } ],
+        kpis: [ { type: 'cp', target: 120, label: 'CP热度' }, { type: 'play', target: 100, label: '预告播放（百万）' } ],
         desc: "“买热搜、炒CP，一切为了首播数据。”" 
     },
     { 
         id: 5, name: "上线播出期", 
-        kpis: [ { type: 'play', target: 5000, label: '播放量' }, { type: 'money', target: 800, label: '粉丝氪金' } ],
+        kpis: [ { type: 'play', target: 200, label: '播放量（百万）' }, { type: 'money', target: 500, label: '粉丝氪金' } ],
         desc: "“空降播出还是定档跳票，平台说了算。”" 
     },
     { id: 6, name: "售后营业期", kpis: [], desc: "“剧终人不散，还是解绑各自飞？”" }
@@ -55,7 +55,7 @@ const GOSSIP_LIB = [
 const RAW_EVENTS = {
     1: [
         // 原事件保留
-        { t: "备案时，内容评审要求将剧名从《某某》改为《少年同行》。", i: "📝", o: [
+        { t: "备案时，内容评审要求将剧名从《心动轨迹》改为《青春并肩走》。", i: "📝", o: [
             { t: "立刻改名，低调备案", e: { risk: -5, platform: 10 } },
             { t: "找关系沟通，保留原名", e: { risk: 15, platform: -5, money: -100 } },
             { t: "改名但加副标题，暗度陈仓", e: { risk: 10, cp: 8 } }
@@ -65,7 +65,7 @@ const RAW_EVENTS = {
             { t: "拒绝，优先保证合规", e: { risk: -5, platform: 15, cp: -5 } },
             { t: "折中，加隐晦互动（碰手/对视）", e: { cp: 10, risk: 8, platform: 5 } }
         ]},
-        { t: "竞品青春同行剧提前备案，抢占同类题材先机。", i: "🚀", o: [
+        { t: "竞品剧提前备案，抢占同类题材先机。", i: "🚀", o: [
             { t: "加速备案流程，砸钱插队", e: { money: -150, risk: 10, platform: 8 } },
             { t: "修改题材标签，避开直接竞争", e: { risk: -5, cp: -8, platform: 10 } },
             { t: "无视，按原计划推进", e: { risk: 5, cp: 5, money: 0 } }
