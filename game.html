@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>内娱麦麸模拟器 v1.0</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+    body { font-family: 'Noto Sans SC', sans-serif; background-color: #0f172a; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
+    
+    .glass { background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    
+    .btn-action { transition: all 0.2s; position: relative; overflow: hidden; }
+    .btn-action:active { transform: scale(0.98); filter: brightness(0.9); }
+    
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .toast-enter { animation: slideUp 0.3s forwards; }
+    @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+    /* 补充缺失的动画类 */
+    .zoom-in { animation: zoomIn 0.4s ease-out; }
+    @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .animate-in { animation: fadeIn 0.4s ease-out, zoomIn 0.4s ease-out; }
+
+    /* Marquee Animation */
+    .marquee-container { overflow: hidden; white-space: nowrap; position: relative; }
+    .marquee-text { display: inline-block; animation: scroll 15s linear infinite; padding-left: 100%; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1516280440614-6697288d5d38?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-fixed">
+<div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-0"></div>
+
+
+
+<div id="app" class="w-full max-w-2xl relative z-10 flex flex-col min-h-[90vh] md:h-auto transition-all duration-300">
+
+    <div id="screen-char" class="glass rounded-3xl p-6 md:p-10 flex flex-col h-full animate-in fade-in zoom-in duration-300">
+        <h1 class="text-4xl font-black text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 tracking-tight">内娱麦麸模拟器</h1>
+        <p class="text-slate-400 text-center mb-6 text-sm">打造你的专属人设</p>
+        
+        <div class="bg-slate-800/50 rounded-2xl p-5 mb-6 border border-slate-700/50">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-white">属性分配</h3>
+                <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300">剩余点数: <span id="points-left" class="text-yellow-400 font-bold">12</span></span>
+            </div>
+            
+            <div class="space-y-5 text-sm">
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 text-pink-300 font-bold">颜值</div>
+                        <button onclick="adjAttr('beauty', -1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">-</button>
+                        <div class="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden"><div id="bar-beauty" class="h-full bg-slate-500 w-[0%] transition-all"></div></div>
+                        <span id="val-beauty" class="w-6 text-right font-mono font-bold">0</span>
+                        <button onclick="adjAttr('beauty', 1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">+</button>
+                    </div>
+                    <div id="desc-beauty" class="text-[10px] text-slate-500 pl-14 h-4">平平无奇</div>
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 text-purple-300 font-bold">演技</div>
+                        <button onclick="adjAttr('acting', -1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">-</button>
+                        <div class="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden"><div id="bar-acting" class="h-full bg-slate-500 w-[0%] transition-all"></div></div>
+                        <span id="val-acting" class="w-6 text-right font-mono font-bold">0</span>
+                        <button onclick="adjAttr('acting', 1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">+</button>
+                    </div>
+                    <div id="desc-acting" class="text-[10px] text-slate-500 pl-14 h-4">面瘫AI</div>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 text-yellow-300 font-bold">资本</div>
+                        <button onclick="adjAttr('cash', -1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">-</button>
+                        <div class="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden"><div id="bar-cash" class="h-full bg-slate-500 w-[0%] transition-all"></div></div>
+                        <span id="val-cash" class="w-6 text-right font-mono font-bold">0</span>
+                        <button onclick="adjAttr('cash', 1)" class="w-8 h-8 rounded bg-slate-700 hover:bg-slate-600">+</button>
+                    </div>
+                    <div id="desc-cash" class="text-[10px] text-slate-500 pl-14 h-4">家境贫寒</div>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-slate-700 text-[10px] text-slate-400 flex justify-between">
+                <span>0-3: 劣势</span>
+                <span>4-7: 普通</span>
+                <span class="text-yellow-400">8-10: 顶级天赋</span>
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-purple-900/50 transition transform hover:-translate-y-1 mt-auto">
+            签约出道 ✨
+        </button>
+    </div>
+
+    <div id="screen-game" class="hidden flex-col h-full relative">
+        
+        <div class="relative mb-6 mt-2 px-2">
+            <div class="text-center">
+                <h2 id="phase-title" class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300 tracking-wider drop-shadow-sm">PHASE 1</h2>
+                <div id="phase-desc" class="text-xs text-slate-400 mt-1 italic font-medium h-8 flex items-center justify-center"></div>
+            </div>
+            <div class="absolute top-0 right-0 bg-red-600 text-white w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-lg border-2 border-slate-900 transform rotate-12">
+                <span class="text-[8px] opacity-80 uppercase">Week</span>
+                <span id="week-badge" class="text-lg font-bold leading-none">1</span>
+            </div>
+        </div>
+
+        <div class="glass rounded-2xl p-3 mb-4 grid grid-cols-5 gap-1 text-center text-[10px] md:text-xs select-none relative z-10">
+            <div class="flex flex-col items-center"><span class="text-2xl mb-1">🍬</span><span class="text-pink-400 font-bold">糖分</span><span id="game-sugar" class="text-white font-mono text-sm">0</span></div>
+            <div class="flex flex-col items-center"><span class="text-2xl mb-1">⚔️</span><span class="text-purple-400 font-bold">唯粉</span><span id="game-solo" class="text-white font-mono text-sm">0</span></div>
+            <div class="flex flex-col items-center"><span class="text-2xl mb-1">💰</span><span class="text-yellow-400 font-bold">资本</span><span id="game-money" class="text-white font-mono text-sm">0</span></div>
+            <div class="flex flex-col items-center"><span class="text-2xl mb-1">❤️</span><span class="text-red-400 font-bold">私交</span><span id="game-bond" class="text-white font-mono text-sm">0</span></div>
+            <div class="flex flex-col items-center relative">
+                <span class="text-2xl mb-1">💣</span><span class="text-slate-400 font-bold">风险</span>
+                <span id="game-risk" class="text-orange-500 font-mono font-bold text-sm">0%</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/60 rounded-xl p-3 mb-4 border border-slate-700">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-slate-300">🏢 公司考核目标 (KPI)</span>
+                <button onclick="toggleStats()" class="text-xs bg-slate-700 px-2 py-1 rounded text-white hover:bg-pink-600 transition">📊 艺人档案</button>
+            </div>
+            <div id="kpi-container" class="space-y-2"></div>
+        </div>
+
+        <div class="flex-1 relative mb-4">
+            <div id="event-card" class="glass rounded-3xl p-6 h-full min-h-[220px] flex flex-col items-center justify-center text-center fade-in border-t border-white/10 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 text-9xl opacity-5 pointer-events-none select-none group-hover:scale-110 transition duration-700">🎥</div>
+                <div id="event-icon" class="text-5xl mb-4 animate-bounce">🎬</div>
+                <p id="event-text" class="text-lg font-bold leading-relaxed text-slate-100">事件加载中...</p>
+            </div>
+            
+            <div class="mt-2 bg-black/40 rounded-lg py-1.5 px-3 border border-slate-700/50 flex items-center gap-2">
+                <span class="text-[10px] font-bold bg-pink-600 text-white px-1 rounded">热搜</span>
+                <div class="marquee-container flex-1 h-5 relative">
+                    <div id="gossip-text" class="marquee-text text-xs text-slate-300 leading-5">
+                        营销号正在编料...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-2 mt-auto pb-6">
+            <button id="btn-opt1" onclick="choose(0)" class="btn-action w-full p-4 bg-slate-800 rounded-xl text-sm font-medium border border-slate-700 hover:bg-slate-700 hover:border-pink-500/50 text-left text-slate-200"></button>
+            <button id="btn-opt2" onclick="choose(1)" class="btn-action w-full p-4 bg-slate-800 rounded-xl text-sm font-medium border border-slate-700 hover:bg-slate-700 hover:border-purple-500/50 text-left text-slate-200"></button>
+            <button id="btn-opt3" onclick="choose(2)" class="btn-action w-full p-4 bg-slate-800 rounded-xl text-sm font-medium border border-slate-700 hover:bg-slate-700 hover:border-yellow-500/50 text-left text-slate-200"></button>
+            
+            <button onclick="toggleShop()" class="mt-4 w-full p-3 bg-gradient-to-r from-yellow-900/40 to-yellow-600/20 text-yellow-400 rounded-xl text-xs font-bold border border-yellow-500/30 hover:border-yellow-400 transition flex items-center justify-center gap-2">
+                🛒 钞能力商城
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-stats" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 fade-in">
+        <div class="bg-slate-900 w-full max-w-sm rounded-2xl border border-slate-700 p-6 shadow-2xl relative">
+            <button onclick="toggleStats()" class="absolute top-4 right-4 text-slate-500 hover:text-white">✕</button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">📊 艺人档案</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">已激活特性</h4>
+                    <div id="stats-buffs" class="flex flex-wrap gap-2"><span class="text-xs text-slate-500">无</span></div>
+                </div>
+                <div class="text-xs text-slate-500 leading-relaxed bg-slate-800/50 p-3 rounded-lg border border-red-900/30">
+                    <span class="text-red-400 font-bold">⚠️ 死亡红线：</span>
+                    当前风险 <span id="stats-risk">0%</span>。满 100% 即刻封杀。
+                    <!-- 新增：显示当前资本 -->
+                    <br><span class="text-yellow-400 font-bold">💵 当前资本：</span><span id="stats-money">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-shop" class="hidden absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end fade-in">
+        <div class="bg-slate-900 w-full rounded-t-3xl p-6 border-t border-slate-700 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-yellow-400 font-bold text-lg">👑 资本运作</h3>
+                <button onclick="toggleShop()" class="bg-slate-800 w-8 h-8 rounded-full text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-3">
+                <button onclick="buyItem('sugar')" class="w-full flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-pink-500 active:scale-95 transition">
+                    <span class="font-bold text-pink-400">🔥 买热搜 (糖分+60)</span><span class="text-yellow-500 font-mono">-200💰</span>
+                </button>
+                <button onclick="buyItem('risk')" class="w-full flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-blue-500 active:scale-95 transition">
+                    <span class="font-bold text-blue-400">🛡️ 公关压黑料 (风险-25)</span><span class="text-yellow-500 font-mono">-300💰</span>
+                </button>
+                <button onclick="buyItem('bond')" class="w-full flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-red-500 active:scale-95 transition">
+                    <span class="font-bold text-red-400">🍷 私下送礼 (私交+20)</span><span class="text-yellow-500 font-mono">-150💰</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-report" class="hidden fixed inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-300">
+        <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
+            <div id="report-icon" class="text-6xl mb-4 block">📝</div>
+            <h2 id="report-title" class="text-2xl font-black mb-2 text-white">阶段考核</h2>
+            <div class="text-left bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 mb-6">
+                <div id="report-content" class="text-slate-300 text-sm leading-relaxed whitespace-pre-line font-medium"></div>
+            </div>
+            <button id="btn-next-phase" onclick="nextPhase()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold">进入下一阶段 →</button>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-full max-w-md px-4 flex flex-col items-center gap-2"></div>
+</div>
+
+<!-- 引入外部JS文件 -->
+<script src="game.js"></script>
+</body>
+</html>
