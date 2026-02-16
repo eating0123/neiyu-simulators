@@ -419,11 +419,16 @@ function startGame() {
 }
 
 // Load Event
+// Load Event
 function loadEvent() {
-    // Phase 4 specific logic
+    // 【修改点 1】第4阶段的特殊逻辑：确保第6周才触发大结局
     if (state.phase === 4) {
+        // 计算当前阶段已经玩了几个事件
         const phase4Count = [...state.usedEvents].filter(k => k.startsWith('4-')).length;
-        if (phase4Count >=3) {
+        
+        // 这里的 5 代表“已经过了5周”，所以下一题是第6周
+        if (phase4Count >= 5) {
+            // RAW_EVENTS[4][3] 是你的“【终局抉择】”事件在数组里的位置（索引为3）
             renderEvent(RAW_EVENTS[4][3]); 
             return;
         }
@@ -432,10 +437,15 @@ function loadEvent() {
     const pool = RAW_EVENTS[state.phase];
     let available = pool.filter((ev, idx) => {
         const key = `${state.phase}-${idx}`;
+        
+        // 【修改点 2】关键保护：在第4阶段，从随机池里把“终局抉择”(索引3) 踢出去
+        // 这样前5周就绝对不会随机到这个事件了
         if (state.phase === 4 && idx === 3) return false; 
+        
         return !state.usedEvents.has(key);
     });
 
+    // 如果事件不够用了（防止死循环），兜底逻辑
     if (available.length === 0) {
         if (state.phase === 4) { renderEvent(RAW_EVENTS[4][3]); return; }
         available = pool; 

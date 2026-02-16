@@ -243,7 +243,7 @@ const RAW_EVENTS = {
             { t: "冷处理，暂停所有直播宣发", e: { risk: 5, cp: -10, play: -8 } },
             { t: "甩锅给直播平台，继续宣发", e: { risk: 18, cp: 10, platform: -15 } }
         ]},
-        { t: "【短视频平台限流所有CP相关物料，播放量骤降。", i: "📱", o: [
+        { t: "短视频平台限流所有CP相关物料，播放量骤降。", i: "📱", o: [
             { t: "调整物料，主打剧情/演技向", e: { risk: -5, play: 10, cp: -8 } },
             { t: "买通平台运营，恢复流量", e: { money: -200, play: 25, risk: 10 } },
             { t: "转战小众平台宣发", e: { play: 8, cp: 12, platform: -5 } }
@@ -368,7 +368,7 @@ const RAW_EVENTS = {
 // 初始点数 18 点
 const state = {
     attrs: { script: 0, actor: 0, promo: 0, policy: 0, fan: 0 },
-    pointsLeft: 18, 
+    pointsLeft: 20, 
     stats: { play: 0, cp: 0, platform: 0, money: 0, risk: 0 },
     phase: 1,
     week: 1,
@@ -383,7 +383,7 @@ const state = {
 // 处理滑块拖动事件
 function onSliderChange(activeKey) {
     const keys = ['script', 'actor', 'promo', 'policy', 'fan'];
-    const maxPoints = 18; // 总点数
+    const maxPoints = 20; // 总点数
 
     // 1. 计算除了当前滑块之外，其他滑块占用了多少点
     let usedByOthers = 0;
@@ -510,10 +510,13 @@ function startGame() {
 }
 
 function loadEvent() {
+    // 【逻辑核心】第6阶段（售后营业期）的特殊处理
     if (state.phase === 6) {
-        const phase6Count = [...state.usedEvents].filter(k => k.startsWith('6-')).length;
-        if (phase6Count >= (RAW_EVENTS[6] || []).length - 1) {
-            renderEvent(RAW_EVENTS[6][5] || RAW_EVENTS[6][0]); 
+        
+        // 1. 如果是第 5 周，强制加载“终局抉择”事件
+        // 注意：在你的代码中，【终局抉择】是第6阶段数组里的第 3 个事件（索引为3）
+        if (state.week === 5) {
+            renderEvent(RAW_EVENTS[6][3]); 
             return;
         }
     }
@@ -521,19 +524,28 @@ function loadEvent() {
     const pool = RAW_EVENTS[state.phase];
     let available = pool.filter((ev, idx) => {
         const key = `${state.phase}-${idx}`;
-        if (state.phase === 6 && idx === 5) return false;
+        
+        // 【关键保护】在第6阶段的前4周，屏蔽掉所有会导致“直接大结局”的事件
+        // 你的代码里，索引 3, 4, 5 都是带结局的，为了防止提前结束，都要屏蔽
+        if (state.phase === 6) {
+            // 屏蔽索引 3(终局抉择), 4(拍第二季), 5(最终结算)
+            if (idx === 3 || idx === 4 || idx === 5) return false;
+            
+            // 更智能的屏蔽：如果这个事件的任意选项里包含 'end' (结局触发器)，就不要在平时刷出来
+            if (ev.o && ev.o.some(opt => opt.e && opt.e.end)) return false;
+        }
+        
         return !state.usedEvents.has(key);
     });
 
+    // 兜底逻辑：万一题库不够用了
     if (available.length === 0) {
-        if (state.phase === 6) { 
-            renderEvent(RAW_EVENTS[6][5]); 
-            return; 
-        }
+        // 第6阶段没题了就直接进结局
+        if (state.phase === 6) { renderEvent(RAW_EVENTS[6][3]); return; }
+        
+        // 其他阶段重置题目池
         available = pool; 
-        [...state.usedEvents].forEach(k => { 
-            if(k.startsWith(state.phase+'-')) state.usedEvents.delete(k); 
-        });
+        [...state.usedEvents].forEach(k => { if(k.startsWith(state.phase+'-')) state.usedEvents.delete(k); });
     }
 
     const ev = available[Math.floor(Math.random() * available.length)];
